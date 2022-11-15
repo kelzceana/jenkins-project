@@ -9,6 +9,11 @@ pipeline {
   }
   stages {
     stage ('Build') {
+      when {
+        expression {
+          params.choices = '1.0'
+        }
+      }
       steps {
         echo 'This is the build phase'
       } 
