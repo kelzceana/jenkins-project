@@ -11,7 +11,7 @@ pipeline {
     stage ('Build') {
       when {
         expression {
-          params.choices == '1.0'
+          params.choices === '1.0'
         }
       }
       steps {
