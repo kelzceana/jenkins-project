@@ -45,7 +45,7 @@ pipeline {
       }
       steps {
         script {
-          gv.deployApp("${params.stage}")
+          gv.deployApp(params.stage)
           
         }
       }
