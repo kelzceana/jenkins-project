@@ -1,3 +1,5 @@
+gv = load "external-script.groovy"
+
 pipeline {
   agent any
   tools {
@@ -15,17 +17,23 @@ pipeline {
         }
       }
       steps {
-        echo 'This is the build phase'
+        script {
+        gv.buildApp()
+      }
       } 
     }
     stage ('Test') {
       steps {
-        echo 'This is the testing phase'
+        script {
+          gv.testApp
+        }
       }
     }
     stage ('deploy') {
       steps {
-        echo 'This is the deployment phase'
+        script {
+          gv.deployApp
+        }
       }
     }
   }
