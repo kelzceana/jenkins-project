@@ -1,4 +1,4 @@
-gv = load "external-script.groovy"
+ def gv = load "external-script.groovy"
 
 pipeline {
   agent any
