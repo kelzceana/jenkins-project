@@ -32,14 +32,14 @@ pipeline {
     stage ('Test') {
       steps {
         script {
-          gv.testApp
+          gv.testApp()
         }
       }
     }
     stage ('deploy') {
       steps {
         script {
-          gv.deployApp
+          gv.deployApp()
         }
       }
     }
