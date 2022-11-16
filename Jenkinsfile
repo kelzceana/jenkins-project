@@ -23,7 +23,7 @@ pipeline {
     }
     stage ('UPLOAD IMAGE') {
       steps {
-        
+        echo 'deploying image'
       }
     }
   }
