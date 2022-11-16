@@ -1,53 +1,29 @@
- def gv 
-
 pipeline {
   agent any
   tools {
     maven 'maven3'
   }
-  parameters {
-    choice(name: "VERSION", choices: ['1.0', '1.1', '1.2'], description: "")
-    booleanParam(name: "executeTests", defaultValue: true, description: "")
-  }
   stages {
-    stage('init') {
+    stage ('Build jar file') {
       steps {
-        script {
-          gv = load "external-script.groovy"
-        }
+        sh 'mvn package'
       }
     }
-    stage ('Build') {
-      when {
-        expression {
-          params.VERSION == '1.0'
-        }
-      }
+    stage ('Build image') {
       steps {
-        script {
-        gv.buildApp()
-      }
-      } 
-    }
-    stage ('Test') {
-      steps {
-        script {
-          gv.testApp()
+        echo 'Building docker image'
+        // get docker hub login credentials
+        withCredentials([usernamePassword(credentialsID: 'docker-hub', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+          sh 'docker build -t kelzceana/demo-app:1.1 .'
+          sh "echo $PASSWORD | docker login -u $USERNAME --password-stdin"
+          sh 'docker push kelzceana/demo-app:1.1'
         }
+        //sh 'docker build -t kelzceana/demo-app:1.1 .'
       }
     }
-    stage ('deploy') {
-      input {
-        message "Select which staging environment"
-        parameters {
-          choice(name: 'stage', choices: ['prod', 'uat'])
-        }
-      }
+    stage ('UPLOAD IMAGE') {
       steps {
-        script {
-          gv.deployApp(env.stage)
-          
-        }
+        
       }
     }
   }
