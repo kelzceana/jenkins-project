@@ -1,4 +1,4 @@
- def gv = load "external-script.groovy"
+ def gv 
 
 pipeline {
   agent any
@@ -10,6 +10,13 @@ pipeline {
     booleanParam(name: "executeTests", defaultValue: true, description: "")
   }
   stages {
+    stage('init') {
+      steps {
+        script {
+          gv = load "external-script.groovy"
+        }
+      }
+    }
     stage ('Build') {
       when {
         expression {
