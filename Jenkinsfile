@@ -10,7 +10,7 @@ pipeline {
       }
     }
     stage ('Build image') {
-      with {
+      when {
         expression {
           BRANCH_NAME == 'jenkins-pipeline'
         }
