@@ -1,29 +1,54 @@
+ @Library('jenkins-shared-library')
+ def gv 
+
 pipeline {
   agent any
   tools {
     maven 'maven3'
   }
+  parameters {
+    choice(name: "VERSION", choices: ['1.0', '1.1', '1.2'], description: "")
+    booleanParam(name: "executeTests", defaultValue: true, description: "")
+  }
   stages {
-    stage ('Build jar file') {
+    stage('init') {
       steps {
-        sh 'mvn package'
-      }
-    }
-    stage ('Build image') {
-      steps {
-        echo 'Building docker image'
-        // get docker hub login credentials
-        withCredentials([usernamePassword(credentialsId: 'docker-hub', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-          sh 'docker build -t kelzceana/demo-app:1.1 .'
-          sh "echo $PASSWORD | docker login -u $USERNAME --password-stdin"
-          sh 'docker push kelzceana/demo-app:1.1'
+        script {
+          gv = load "external-script.groovy"
         }
-        //sh 'docker build -t kelzceana/demo-app:1.1 .'
       }
     }
-    stage ('UPLOAD IMAGE') {
+    stage ('Build') {
+      when {
+        expression {
+          params.VERSION == '1.0'
+        }
+      }
       steps {
-        echo 'deploying image'
+        script {
+        buildApp()
+      }
+      } 
+    }
+    stage ('Test') {
+      steps {
+        script {
+          testApp()
+        }
+      }
+    }
+    stage ('deploy') {
+      input {
+        message "Select which staging environment"
+        parameters {
+          choice(name: 'stage', choices: ['prod', 'uat'])
+        }
+      }
+      steps {
+        script {
+          gv.deployApp(env.stage)
+          
+        }
       }
     }
   }
