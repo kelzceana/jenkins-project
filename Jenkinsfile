@@ -18,7 +18,7 @@ pipeline {
         }
       }
     }
-    stage ('Build') {
+    stage ('Build Jar') {
       when {
         expression {
           params.VERSION == '1.0'
@@ -26,14 +26,14 @@ pipeline {
       }
       steps {
         script {
-        buildApp()
+        buildJar()
       }
       } 
     }
-    stage ('Test') {
+    stage ('Build Image') {
       steps {
         script {
-          testApp()
+          buildImage()
         }
       }
     }
