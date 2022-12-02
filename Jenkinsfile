@@ -20,7 +20,7 @@ pipeline {
         stage('deploy') {
             steps {
                 script {
-                    def dockerCmd = 'docker run -p 3000:3080 kelzceana/web-app:1.0'
+                    def dockerCmd = 'docker run -d -p 3000:3080 kelzceana/web-app:1.0'
                         sshagent(['EC2-server-key']) {
                             // some block
                             sh "ssh -o StrictHostKeyChecking=no ec2-user@54.166.104.195 ${dockerCmd}"
