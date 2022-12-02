@@ -1,54 +1,48 @@
- @Library('jenkins-shared-library')
- def gv 
-
 pipeline {
   agent any
   tools {
     maven 'maven3'
   }
-  parameters {
-    choice(name: "VERSION", choices: ['1.0', '1.1', '1.2'], description: "")
-    booleanParam(name: "executeTests", defaultValue: true, description: "")
-  }
   stages {
-    stage('init') {
+    stage('increment version') {
       steps {
         script {
-          gv = load "external-script.groovy"
+          echo 'incrementing App version'
+          sh 'mvn build-helper:parse-version versions:set \
+                        -DnewVersion=\\\${parsedVersion.majorVersion}.\\\${parsedVersion.minorVersion}.\\\${parsedVersion.nextIncrementalVersion} \
+                        versions:commit'
         }
+      }
+
+    }
+    stage ('Build jar file') {
+      steps {
+        sh 'mvn package'
       }
     }
-    stage ('Build Jar') {
-      when {
-        expression {
-          params.VERSION == '1.0'
-        }
-      }
+    stage ('Build image') {
       steps {
-        script {
-        buildJar()
-      }
-      } 
-    }
-    stage ('Build Image') {
-      steps {
-        script {
-          buildImage()
+        echo 'Building docker image'
+        // get docker hub login credentials
+        withCredentials([usernamePassword(credentialsId: 'docker-hub', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+          sh 'docker build -t kelzceana/demo-app:1.1 .'
+          sh "echo $PASSWORD | docker login -u $USERNAME --password-stdin"
+          sh 'docker push kelzceana/demo-app:1.1'
         }
+        //sh 'docker build -t kelzceana/demo-app:1.1 .'
       }
     }
-    stage ('deploy') {
-      input {
-        message "Select which staging environment"
-        parameters {
-          choice(name: 'stage', choices: ['prod', 'uat'])
-        }
-      }
+    stage ('UPLOAD IMAGE') {
       steps {
         script {
-          gv.deployApp(env.stage)
-          
+          def dockerCmd 'docker run -p 3000:3080 kelzceana/web-app:1.0'
+          sshagent(['EC2-server-key']) {
+            // some block
+            sh "ssh -o StrictHostKeyChecking=no ec2-user@54.166.104.195 ${dockerCmd}"
+          }
         }
+        echo 'deploying image....'
+              
       }
     }
   }
